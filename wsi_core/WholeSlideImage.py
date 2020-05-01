@@ -80,8 +80,7 @@ class WholeSlideImage(object):
         try:
             self.wsi = openslide.open_slide(path)
         except:
-            arr=openslide.open_slide(Image.fromarray(tifffile.imread(path)))#memmap(path, mode="r+", dtype="uint32", )
-            self.wsi = openslide.open_slide(path)
+            self.wsi = openslide.open_slide(openslide.ImageSlide(Image.fromarray(tifffile.imread(path))))
         self.level_downsamples = self._assertLevelDownsamples()
         self.level_dim = self.wsi.level_dimensions
 
