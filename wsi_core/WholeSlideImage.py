@@ -243,7 +243,7 @@ class WholeSlideImage(object):
         # print(contours)
         print(len(contours))
         for idx, cont in enumerate(contours):
-            print(cont)
+            # print(cont)
             patch_gen = self._getPatchGenerator(cont, idx, patch_level, save_path, patch_size, step_size, **kwargs)
 
             if self.hdf5_file is None:
@@ -262,7 +262,7 @@ class WholeSlideImage(object):
 
         return self.hdf5_file
 
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def _getPatchGenerator(self, cont, cont_idx, patch_level, save_path, patch_size=256, step_size=256, custom_downsample=1,
         white_black=True, white_thresh=15, black_thresh=50, contour_fn='four_pt', use_padding=True):
         start_x, start_y, w, h = cv2.boundingRect(cont) if cont is not None else (0, 0, self.level_dim[patch_level][0], self.level_dim[patch_level][1])
@@ -304,7 +304,8 @@ class WholeSlideImage(object):
         for y in range(start_y, stop_y, step_size_y):
             for x in range(start_x, stop_x, step_size_x):
 
-                if not self.isInContours(cont_check_fn, cont, (x,y), self.holes_tissue[cont_idx], ref_patch_size[0]): #point not inside contour and its associated holes
+                # for now exclude holes
+                if False and not self.isInContours(cont_check_fn, cont, (x,y), self.holes_tissue[cont_idx], ref_patch_size[0]): #point not inside contour and its associated holes
                     continue
 
                 count+=1
