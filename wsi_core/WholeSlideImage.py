@@ -154,7 +154,7 @@ class WholeSlideImage(object):
 
 
         # Thresholding
-        use_otsu=True
+        use_otsu=False
         if use_otsu:
             _, img_otsu = cv2.threshold(img_med, 0, sthresh_up, cv2.THRESH_OTSU+cv2.THRESH_BINARY)
 
