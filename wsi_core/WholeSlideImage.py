@@ -10,6 +10,7 @@ import numpy as np
 import openslide
 from PIL import Image
 import pdb
+import subprocess
 import h5py
 import math
 from wsi_core.wsi_utils import savePatchIter_bag_hdf5, initialize_hdf5_bag
@@ -80,11 +81,9 @@ class WholeSlideImage(object):
         try:
             self.wsi = openslide.open_slide(path)
         except:
-            arr=tifffile.imread(path)
-            w,h=arr.shape[:2]
-            fx=fy=np.sqrt(1e8/w*h)
-            arr=cv2.resize(arr,None,fx=fx,fy=fy)
-            self.wsi = openslide.ImageSlide(Image.fromarray(arr))
+            subprocess.call("vips tiffsave --compression=lzw --Q=100 --tile --tile-width=512 --tile-height=512 --pyramid --vips-progress {} {}".format(path,'tmp.tiff'),shell=True)
+            path="temp.tiff"
+            self.wsi = openslide.open_slide(path)
         self.level_downsamples = self._assertLevelDownsamples()
         self.level_dim = self.wsi.level_dimensions
 
