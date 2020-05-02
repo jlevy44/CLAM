@@ -160,7 +160,9 @@ class WholeSlideImage(object):
 
         else:
             _, img_otsu = cv2.threshold(img_med, sthresh, sthresh_up, cv2.THRESH_BINARY)
+        print(img_otsu)
         print((img_otsu>0).flatten().mean())
+        cv2.imwrite('tmp.png',img_otsu)
 
         # Morphological closing
         if close > 0:
