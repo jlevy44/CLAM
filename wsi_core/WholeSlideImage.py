@@ -216,6 +216,7 @@ class WholeSlideImage(object):
 
         print("Creating patches for: ", self.name, "...",)
         elapsed = time.time()
+        print(contours)
         for idx, cont in enumerate(contours):
             patch_gen = self._getPatchGenerator(cont, idx, patch_level, save_path, patch_size, step_size, **kwargs)
 
