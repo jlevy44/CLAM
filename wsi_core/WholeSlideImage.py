@@ -157,8 +157,10 @@ class WholeSlideImage(object):
         use_otsu=True
         if use_otsu:
             _, img_otsu = cv2.threshold(img_med, 0, sthresh_up, cv2.THRESH_OTSU+cv2.THRESH_BINARY)
+
         else:
             _, img_otsu = cv2.threshold(img_med, sthresh, sthresh_up, cv2.THRESH_BINARY)
+        print((img_otsu>0).flatten().mean())
 
         # Morphological closing
         if close > 0:
