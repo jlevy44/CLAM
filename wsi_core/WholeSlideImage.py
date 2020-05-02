@@ -162,7 +162,7 @@ class WholeSlideImage(object):
             _, img_otsu = cv2.threshold(img_med, sthresh, sthresh_up, cv2.THRESH_BINARY)
         print(img_otsu)
         print((img_otsu>0).flatten().mean())
-        cv2.imwrite('tmp.png',img_otsu)
+
 
         # Morphological closing
         if close > 0:
@@ -176,6 +176,7 @@ class WholeSlideImage(object):
 
         # Find and filter contours
         contours, hierarchy = cv2.findContours(img_otsu, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE) # Find contours
+        cv2.imwrite('tmp.png',cv2.drawContours(img_otsu, contours, -1, (0, 255, 0), 3) )
         hierarchy = np.squeeze(hierarchy, axis=(0,))[:,2:]
         if filter_params: foreground_contours, hole_contours = _filter_contours(contours, hierarchy, filter_params)  # Necessary for filtering out artifacts
 
