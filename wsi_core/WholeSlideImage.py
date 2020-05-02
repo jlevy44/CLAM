@@ -15,6 +15,9 @@ import h5py
 import math
 from wsi_core.wsi_utils import savePatchIter_bag_hdf5, initialize_hdf5_bag
 import pysnooper
+from skimage import morphology as morph
+from scipy.ndimage import label as scilabel
+from scipy.ndimage.morphology import binary_fill_holes as fill_holes
 
 def DrawGrid(img, coord, shape, thickness=2, color=(0,0,0,255)):
     cv2.rectangle(img, tuple(np.maximum([0, 0], coord-thickness//2)), tuple(coord - thickness//2 + np.array(shape)), (0, 0, 0, 255), thickness=thickness)
@@ -169,6 +172,9 @@ class WholeSlideImage(object):
             kernel = np.ones((close, close), np.uint8)
             img_otsu = cv2.morphologyEx(img_otsu, cv2.MORPH_CLOSE, kernel)
 
+        labels = scilabel(img_otsu)[0]
+        img_otsu = fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True))
+
         cv2.imwrite('tmp.png',img_otsu)
 
         scale = self.level_downsamples[seg_level]
@@ -181,7 +187,9 @@ class WholeSlideImage(object):
         # print(contours)
         cv2.imwrite('tmp2.png',cv2.drawContours(img_otsu, contours, -1, (0, 255, 0), 30) )
         hierarchy = np.squeeze(hierarchy, axis=(0,))[:,2:]
-        if filter_params: foreground_contours, hole_contours = _filter_contours(contours, hierarchy, filter_params)  # Necessary for filtering out artifacts
+        foreground_contours=contours
+        hole_contours=[]
+        # if filter_params: foreground_contours, hole_contours = _filter_contours(contours, hierarchy, filter_params)  # Necessary for filtering out artifacts
 
         self.contours_tissue = self.scaleContourDim(foreground_contours, scale)
         self.holes_tissue = self.scaleHolesDim(hole_contours, scale)
