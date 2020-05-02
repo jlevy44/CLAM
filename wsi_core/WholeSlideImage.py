@@ -78,12 +78,7 @@ def StitchPatches(hdf5_file_path, downscale=16, draw_grid=False, bg_color=(0,0,0
 class WholeSlideImage(object):
     def __init__(self, path, hdf5_file=None):
         self.name = ".".join(path.split("/")[-1].split('.')[:-1])
-        try:
-            self.wsi = openslide.open_slide(path)
-        except:
-            subprocess.call("vips tiffsave --compression=lzw --Q=100 --tile --tile-width=512 --tile-height=512 --pyramid --vips-progress {} {}".format(path,'tmp.tiff'),shell=True)
-            path="temp.tiff"
-            self.wsi = openslide.open_slide(path)
+        self.wsi = openslide.open_slide(path)
         self.level_downsamples = self._assertLevelDownsamples()
         self.level_dim = self.wsi.level_dimensions
 
