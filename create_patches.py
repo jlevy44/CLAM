@@ -198,8 +198,8 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 			seg_times += seg_time_elapsed
 			patch_times += patch_time_elapsed
 			stitch_times += stitch_time_elapsed
-	except:
-		pass
+		except:
+			pass
 
 	seg_times /= total
 	patch_times /= total
