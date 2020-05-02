@@ -178,7 +178,7 @@ class WholeSlideImage(object):
 
         img_otsu = (fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True))).astype(np.uint8)*255
 
-        cv2.imwrite('tmp.png',img_otsu)
+        # cv2.imwrite('tmp.png',img_otsu)
 
         scale = self.level_downsamples[seg_level]
         scaled_ref_patch_area = int(ref_patch_size**2 / (scale[0] * scale[1]))
@@ -188,7 +188,7 @@ class WholeSlideImage(object):
         # Find and filter contours
         contours, hierarchy = cv2.findContours(img_otsu, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE) # Find contours
         # print(contours)
-        cv2.imwrite('tmp2.png',cv2.drawContours(img_otsu, contours, -1, (0, 255, 0), 30) )
+        # cv2.imwrite('tmp2.png',cv2.drawContours(img_otsu, contours, -1, (0, 255, 0), 30) )
         hierarchy = np.squeeze(hierarchy, axis=(0,))[:,2:]
         foreground_contours=contours
         hole_contours=[]
