@@ -102,7 +102,7 @@ class WholeSlideImage(object):
         self.contours_tumor = sorted(self.contours_tumor, key=cv2.contourArea, reverse=True)
 
 
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def segmentTissue(self, seg_level=0, sthresh=20, sthresh_up = 255, mthresh=7, close = 0, use_otsu=False,
                             filter_params={'a':100}, ref_patch_size=512):
         """
@@ -148,11 +148,13 @@ class WholeSlideImage(object):
             return foreground_contours, hole_contours
 
         img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level]))
+        print(img.shape)
         img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)  # Convert to HSV space
         img_med = cv2.medianBlur(img_hsv[:,:,1], mthresh)  # Apply median blurring
 
 
         # Thresholding
+        use_otsu=True
         if use_otsu:
             _, img_otsu = cv2.threshold(img_med, 0, sthresh_up, cv2.THRESH_OTSU+cv2.THRESH_BINARY)
         else:
