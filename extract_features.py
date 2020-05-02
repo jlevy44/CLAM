@@ -108,12 +108,11 @@ if __name__ == '__main__':
 	total = len(bags_dataset)
 
 	for bag_candidate_idx in range(total):
-		try:
-			bag_candidate = bags_dataset[bag_candidate_idx]
-			bag_name = os.path.basename(os.path.normpath(bag_candidate))
+		bag_candidate = bags_dataset[bag_candidate_idx]
+		bag_name = os.path.basename(os.path.normpath(bag_candidate))
 
-			if '.h5' in bag_candidate:
-
+		if '.h5' in bag_candidate:
+			try:
 				print('\nprogress: {}/{}'.format(bag_candidate_idx, total))
 				print(bag_name)
 				if not args.no_auto_skip and bag_name in dest_files:
@@ -135,5 +134,5 @@ if __name__ == '__main__':
 				features = torch.from_numpy(features)
 				bag_base, _ = os.path.splitext(bag_name)
 				torch.save(features, os.path.join(args.feat_dir, bag_base+'.pt'))
-		except:
-			pass
+			except:
+				print("Failure {}".format(bag_name))
