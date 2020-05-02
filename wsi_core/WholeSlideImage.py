@@ -174,7 +174,7 @@ class WholeSlideImage(object):
 
         labels = scilabel(img_otsu>0)[0]
 
-        img_otsu = fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True)).astype(float)
+        img_otsu = fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True))
 
         cv2.imwrite('tmp.png',img_otsu)
 
