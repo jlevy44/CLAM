@@ -151,7 +151,7 @@ class WholeSlideImage(object):
             return foreground_contours, hole_contours
 
         img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level]))
-        print(img.shape)
+        # print(img.shape)
         img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)  # Convert to HSV space
         img_med = cv2.medianBlur(img_hsv[:,:,1], mthresh)  # Apply median blurring
 
@@ -174,7 +174,7 @@ class WholeSlideImage(object):
 
         labels = scilabel(img_otsu)[0]
 
-        print(labels.max())
+        # print(labels.max())
 
         img_otsu = (fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True))).astype(np.uint8)*255
 
@@ -192,6 +192,7 @@ class WholeSlideImage(object):
         hierarchy = np.squeeze(hierarchy, axis=(0,))[:,2:]
         foreground_contours=contours
         hole_contours=[]
+        print(foreground_contours)
         # if filter_params: foreground_contours, hole_contours = _filter_contours(contours, hierarchy, filter_params)  # Necessary for filtering out artifacts
 
         self.contours_tissue = self.scaleContourDim(foreground_contours, scale)
