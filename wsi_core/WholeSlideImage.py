@@ -163,7 +163,6 @@ class WholeSlideImage(object):
 
         else:
             _, img_otsu = cv2.threshold(img_med, sthresh, sthresh_up, cv2.THRESH_BINARY)
-        print(np.histogram((img_otsu).flatten()))
 
 
         # Morphological closing
@@ -171,13 +170,13 @@ class WholeSlideImage(object):
             kernel = np.ones((close, close), np.uint8)
             img_otsu = cv2.morphologyEx(img_otsu, cv2.MORPH_CLOSE, kernel)
 
-        img_otsu=(img_otsu==0)
+        img_otsu=(img_otsu==255)
 
         labels = scilabel(img_otsu)[0]
 
         print(labels.max())
 
-        img_otsu = (fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True))==0).astype(np.uint8)*255
+        img_otsu = (fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True))).astype(np.uint8)*255
 
         cv2.imwrite('tmp.png',img_otsu)
 
