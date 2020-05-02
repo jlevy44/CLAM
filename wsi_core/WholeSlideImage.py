@@ -262,7 +262,7 @@ class WholeSlideImage(object):
 
         return self.hdf5_file
 
-
+    @pysnooper.snoop()
     def _getPatchGenerator(self, cont, cont_idx, patch_level, save_path, patch_size=256, step_size=256, custom_downsample=1,
         white_black=True, white_thresh=15, black_thresh=50, contour_fn='four_pt', use_padding=True):
         start_x, start_y, w, h = cv2.boundingRect(cont) if cont is not None else (0, 0, self.level_dim[patch_level][0], self.level_dim[patch_level][1])
