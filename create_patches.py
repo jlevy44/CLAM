@@ -284,7 +284,7 @@ if __name__ == '__main__':
 
 	parameters = {'seg_params': seg_params,
 				  'filter_params': filter_params,
-	 			  'patch_params': patch_params,
+				   'patch_params': patch_params,
 				  'vis_params': vis_params}
 
 	print(parameters)
