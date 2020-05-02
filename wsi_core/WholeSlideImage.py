@@ -192,7 +192,7 @@ class WholeSlideImage(object):
         hierarchy = np.squeeze(hierarchy, axis=(0,))[:,2:]
         foreground_contours=contours
         hole_contours=[]
-        print(foreground_contours)
+        # print(foreground_contours)
         # if filter_params: foreground_contours, hole_contours = _filter_contours(contours, hierarchy, filter_params)  # Necessary for filtering out artifacts
 
         self.contours_tissue = self.scaleContourDim(foreground_contours, scale)
@@ -240,8 +240,10 @@ class WholeSlideImage(object):
 
         print("Creating patches for: ", self.name, "...",)
         elapsed = time.time()
-        print(contours)
+        # print(contours)
+        print(len(contours))
         for idx, cont in enumerate(contours):
+            print(cont)
             patch_gen = self._getPatchGenerator(cont, idx, patch_level, save_path, patch_size, step_size, **kwargs)
 
             if self.hdf5_file is None:
