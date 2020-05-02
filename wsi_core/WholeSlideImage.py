@@ -169,6 +169,8 @@ class WholeSlideImage(object):
             kernel = np.ones((close, close), np.uint8)
             img_otsu = cv2.morphologyEx(img_otsu, cv2.MORPH_CLOSE, kernel)
 
+        cv2.imwrite('tmp.png',img_otsu)
+
         scale = self.level_downsamples[seg_level]
         scaled_ref_patch_area = int(ref_patch_size**2 / (scale[0] * scale[1]))
         filter_params['a_t'] = filter_params['a_t'] * scaled_ref_patch_area
@@ -176,8 +178,8 @@ class WholeSlideImage(object):
 
         # Find and filter contours
         contours, hierarchy = cv2.findContours(img_otsu, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE) # Find contours
-        print(contours)
-        cv2.imwrite('tmp.png',cv2.drawContours(img_otsu, contours, -1, (0, 255, 0), 30) )
+        # print(contours)
+        cv2.imwrite('tmp2.png',cv2.drawContours(img_otsu, contours, -1, (0, 255, 0), 30) )
         hierarchy = np.squeeze(hierarchy, axis=(0,))[:,2:]
         if filter_params: foreground_contours, hole_contours = _filter_contours(contours, hierarchy, filter_params)  # Necessary for filtering out artifacts
 
