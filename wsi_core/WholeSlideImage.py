@@ -14,6 +14,7 @@ import subprocess
 import h5py
 import math
 from wsi_core.wsi_utils import savePatchIter_bag_hdf5, initialize_hdf5_bag
+import pysnooper
 
 def DrawGrid(img, coord, shape, thickness=2, color=(0,0,0,255)):
     cv2.rectangle(img, tuple(np.maximum([0, 0], coord-thickness//2)), tuple(coord - thickness//2 + np.array(shape)), (0, 0, 0, 255), thickness=thickness)
@@ -101,6 +102,7 @@ class WholeSlideImage(object):
         self.contours_tumor = sorted(self.contours_tumor, key=cv2.contourArea, reverse=True)
 
 
+    @pysnooper.snoop()
     def segmentTissue(self, seg_level=0, sthresh=20, sthresh_up = 255, mthresh=7, close = 0, use_otsu=False,
                             filter_params={'a':100}, ref_patch_size=512):
         """
