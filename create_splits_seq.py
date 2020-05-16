@@ -31,6 +31,19 @@ if args.task == 'tcga_kidney':
     val_num = (10, 48, 26)
     test_num = (10, 48, 26)
 
+elif args.task == 'test':
+    args.n_classes=2
+    dataset = Generic_WSI_Classification_Dataset(csv_path = '../dataset_csv/test.csv',
+                            shuffle = False,
+                            seed = args.seed,
+                            print_info = True,
+                            label_dict = {0:0, 1:1},
+                            patient_strat= True,
+                            ignore=[])
+
+    pdb.set_trace()
+    val_num = (10, 4)
+    test_num = (10, 4)
 
 elif args.task == 'camelyon_40x_cv':
     args.n_classes=2
