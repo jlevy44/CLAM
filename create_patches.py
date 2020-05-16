@@ -160,6 +160,7 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
                 best_level = wsi.get_best_level_for_downsample(64)
                 current_seg_params['seg_level'] = best_level
 
+        print(WSI_object.level_dim)
         w, h = WSI_object.level_dim[current_seg_params['seg_level']]
         if w * h > 1e8:
             print('level_dim {} x {} is likely too large for successful segmentation, aborting'.format(w, h))
