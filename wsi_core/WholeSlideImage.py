@@ -85,27 +85,28 @@ import cv2  # OpenCV for fast resizing
 def write_read_pyramid(tiff_file):
     image = tifffile.imread(tiff_file, key=0)
     h, w, s = image.shape
-
-    with tifffile.TiffWriter(tiff_file+'.tmp', bigtiff=True) as tif:
-        level = 0
-        while True:
-            tif.save(
-                image,
-                software='Glencoe/Faas pyramid',
-                metadata=None,
-                tile=(256, 256),
-                resolution=(1000/2**level, 1000/2**level, 'CENTIMETER'),
-                # compress=1,  # low level deflate
-                # compress=('jpeg', 95),  # requires imagecodecs
-                # subfiletype=1 if level else 0,
-            )
-            if max(w, h) < 256:
-                break
-            level += 1
-            w //= 2
-            h //= 2
-            image = cv2.resize(image, dsize=(w, h), interpolation=cv2.INTER_LINEAR)
-    return tifffile.TiffFile(tiff_file+'.tmp')
+    new_img_name=tiff_file+'.tmp.tiff'
+    if not os.path.exists(new_img_name):
+        with tifffile.TiffWriter(new_img_name, bigtiff=True) as tif:
+            level = 0
+            while True:
+                tif.save(
+                    image,
+                    software='Glencoe/Faas pyramid',
+                    metadata=None,
+                    tile=(256, 256),
+                    resolution=(1000/2**level, 1000/2**level, 'CENTIMETER'),
+                    # compress=1,  # low level deflate
+                    # compress=('jpeg', 95),  # requires imagecodecs
+                    # subfiletype=1 if level else 0,
+                )
+                if max(w, h) < 256:
+                    break
+                level += 1
+                w //= 2
+                h //= 2
+                image = cv2.resize(image, dsize=(w, h), interpolation=cv2.INTER_LINEAR)
+    return tifffile.TiffFile(new_img_name)
 
 class WholeSlideImage(object):
     def __init__(self, path, hdf5_file=None):
