@@ -280,8 +280,12 @@ class WholeSlideImage(object):
         elapsed = time.time()
         # print(contours)
         print(len(contours))
+        self.img=self.wsi.pages[0].asarray()
+
+
         for idx, cont in enumerate(contours):
-            # print(cont)
+            print(cont,self.img.shape)
+
             patch_gen = self._getPatchGenerator(cont, idx, patch_level, save_path, patch_size, step_size, **kwargs)
 
             if self.hdf5_file is None:
@@ -332,9 +336,7 @@ class WholeSlideImage(object):
 
 
         if self.load_tiff:
-            img=self.wsi.pages[0].asarray()
-            img_w, img_h = img.shape[:2]
-
+            img_w, img_h = self.img.shape[:2]
         else:
             img_w, img_h = self.level_dim[0]
         if use_padding:
