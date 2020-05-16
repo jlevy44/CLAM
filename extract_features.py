@@ -85,7 +85,7 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--no_auto_skip', default=False, action='store_true')
 args = parser.parse_args()
 
-@pysnooper.snoop()
+#@pysnooper.snoop()
 def main():
     print('initializing dataset')
     csv_path = args.csv_path
