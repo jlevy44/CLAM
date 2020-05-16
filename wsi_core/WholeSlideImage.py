@@ -119,7 +119,7 @@ class WholeSlideImage(object):
         except:
             self.wsi = write_read_pyramid(path)
             self.load_tiff=True
-            self.level_dimensions = [page.shape for page in self.wsi.pages]
+            self.level_dimensions = [page.shape[:2] for page in self.wsi.pages]
 
         self.level_downsamples = self._assertLevelDownsamples()
         self.level_dim = self.level_dimensions
@@ -333,7 +333,7 @@ class WholeSlideImage(object):
 
         if self.load_tiff:
             img=self.wsi.pages[0].asarray()
-            img_w, img_h = img.shape[:3]
+            img_w, img_h = img.shape[:2]
 
         else:
             img_w, img_h = self.level_dim[0]
