@@ -112,27 +112,27 @@ if __name__ == '__main__':
         bag_candidate = bags_dataset[bag_candidate_idx]
         bag_name = os.path.basename(os.path.normpath(bag_candidate))
         if (bag_name==args.img_name or not args.img_name) and '.h5' in bag_candidate:
-            try:
-                print('\nprogress: {}/{}'.format(bag_candidate_idx, total))
-                print(bag_name)
-                if not args.no_auto_skip and bag_name in dest_files:
-                    print('skipped {}'.format(bag_name))
-                    continue
+            # try:
+            print('\nprogress: {}/{}'.format(bag_candidate_idx, total))
+            print(bag_name)
+            if not args.no_auto_skip and bag_name in dest_files:
+                print('skipped {}'.format(bag_name))
+                continue
 
-                output_path = os.path.join(args.feat_dir, bag_name)
-                file_path = bag_candidate
-                time_start = time.time()
-                output_file_path = compute_w_loader(file_path, output_path,
-                model = model, feature_dim = 1024, batch_size = args.batch_size, verbose = 1, print_every = 20)
-                time_elapsed = time.time() - time_start
-                print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
-                file = h5py.File(output_file_path, "r")
+            output_path = os.path.join(args.feat_dir, bag_name)
+            file_path = bag_candidate
+            time_start = time.time()
+            output_file_path = compute_w_loader(file_path, output_path,
+            model = model, feature_dim = 1024, batch_size = args.batch_size, verbose = 1, print_every = 20)
+            time_elapsed = time.time() - time_start
+            print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
+            file = h5py.File(output_file_path, "r")
 
-                features = file['features'][:]
-                print('features size: ', features.shape)
-                print('coordinates size: ', file['coords'].shape)
-                features = torch.from_numpy(features)
-                bag_base, _ = os.path.splitext(bag_name)
-                torch.save(features, os.path.join(args.feat_dir, bag_base+'.pt'))
-            except:
-                print("Failure {}".format(bag_name))
+            features = file['features'][:]
+            print('features size: ', features.shape)
+            print('coordinates size: ', file['coords'].shape)
+            features = torch.from_numpy(features)
+            bag_base, _ = os.path.splitext(bag_name)
+            torch.save(features, os.path.join(args.feat_dir, bag_base+'.pt'))
+            # except:
+            #     print("Failure {}".format(bag_name))
