@@ -188,7 +188,7 @@ class WholeSlideImage(object):
 
             return foreground_contours, hole_contours
 
-        img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level])) if not self.load_tiff else self.wsi.pages[seg_level].asarray()
+        img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level])) if not self.load_tiff else np.transpose(self.wsi.pages[seg_level].asarray(),(1,0,2))
         # print(img.shape)
         img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)  # Convert to HSV space
         img_med = cv2.medianBlur(img_hsv[:,:,1], mthresh)  # Apply median blurring
@@ -216,7 +216,7 @@ class WholeSlideImage(object):
 
         img_otsu = (fill_holes(morph.remove_small_objects(labels, min_size=10000, connectivity = 10, in_place=True))).astype(np.uint8)*255
 
-        # cv2.imwrite('tmp.png',img_otsu)
+        cv2.imwrite('tmp.png',img_otsu)
 
         scale = self.level_downsamples[seg_level]
         scaled_ref_patch_area = int(ref_patch_size**2 / (scale[0] * scale[1]))
