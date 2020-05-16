@@ -114,94 +114,94 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
             df.loc[idx, 'status'] = 'already_exist'
             continue
 
-        try:
-            # Inialize WSI
-            full_path = os.path.join(source, slide)
-            WSI_object = WholeSlideImage(full_path, hdf5_file=None)
+        # try:
+        # Inialize WSI
+        full_path = os.path.join(source, slide)
+        WSI_object = WholeSlideImage(full_path, hdf5_file=None)
 
-            if use_default_params:
-                current_vis_params = vis_params.copy()
-                current_filter_params = filter_params.copy()
-                current_seg_params = seg_params.copy()
-                current_patch_params = patch_params.copy()
+        if use_default_params:
+            current_vis_params = vis_params.copy()
+            current_filter_params = filter_params.copy()
+            current_seg_params = seg_params.copy()
+            current_patch_params = patch_params.copy()
+
+        else:
+            current_vis_params = {}
+            current_filter_params = {}
+            current_seg_params = {}
+            current_patch_params = {}
+            for key in vis_params.keys():
+                current_vis_params.update({key: df.loc[idx, key]})
+
+            for key in filter_params.keys():
+                current_filter_params.update({key: df.loc[idx, key]})
+
+            for key in seg_params.keys():
+                current_seg_params.update({key: df.loc[idx, key]})
+
+            for key in patch_params.keys():
+                current_patch_params.update({key: df.loc[idx, key]})
+
+        if current_vis_params['vis_level'] < 0:
+            if len(WSI_object.level_dim) == 1:
+                current_vis_params['vis_level'] = 0
 
             else:
-                current_vis_params = {}
-                current_filter_params = {}
-                current_seg_params = {}
-                current_patch_params = {}
-                for key in vis_params.keys():
-                    current_vis_params.update({key: df.loc[idx, key]})
+                wsi = WSI_object.getOpenSlide()
+                best_level = wsi.get_best_level_for_downsample(64)
+                current_vis_params['vis_level'] = best_level
 
-                for key in filter_params.keys():
-                    current_filter_params.update({key: df.loc[idx, key]})
+        if current_seg_params['seg_level'] < 0:
+            if len(WSI_object.level_dim) == 1:
+                current_seg_params['seg_level'] = 0
 
-                for key in seg_params.keys():
-                    current_seg_params.update({key: df.loc[idx, key]})
+            else:
+                wsi = WSI_object.getOpenSlide()
+                best_level = wsi.get_best_level_for_downsample(64)
+                current_seg_params['seg_level'] = best_level
 
-                for key in patch_params.keys():
-                    current_patch_params.update({key: df.loc[idx, key]})
+        w, h = WSI_object.level_dim[current_seg_params['seg_level']]
+        if w * h > 1e8:
+            print('level_dim {} x {} is likely too large for successful segmentation, aborting'.format(w, h))
+            df.loc[idx, 'status'] = 'failed_seg'
+            continue
 
-            if current_vis_params['vis_level'] < 0:
-                if len(WSI_object.level_dim) == 1:
-                    current_vis_params['vis_level'] = 0
+        if not process_list:
+            df.loc[idx, 'vis_level'] = current_vis_params['vis_level']
+            df.loc[idx, 'seg_level'] = current_seg_params['seg_level']
 
-                else:
-                    wsi = WSI_object.getOpenSlide()
-                    best_level = wsi.get_best_level_for_downsample(64)
-                    current_vis_params['vis_level'] = best_level
+        seg_time_elapsed = -1
+        if seg:
+            WSI_object, seg_time_elapsed = segment(WSI_object, current_seg_params, current_filter_params)
 
-            if current_seg_params['seg_level'] < 0:
-                if len(WSI_object.level_dim) == 1:
-                    current_seg_params['seg_level'] = 0
+        if save_mask:
+            mask = WSI_object.visWSI(**current_vis_params)
+            mask_path = os.path.join(mask_save_dir, slide_id+'.png')
+            mask.save(mask_path)
 
-                else:
-                    wsi = WSI_object.getOpenSlide()
-                    best_level = wsi.get_best_level_for_downsample(64)
-                    current_seg_params['seg_level'] = best_level
+        patch_time_elapsed = -1 # Default time
+        if patch:
+            current_patch_params.update({'patch_level': patch_level, 'patch_size': patch_size, 'step_size': step_size,
+                                         'save_path': patch_save_dir, 'custom_downsample': custom_downsample})
+            file_path, patch_time_elapsed = patching(WSI_object = WSI_object, **current_patch_params)
 
-            w, h = WSI_object.level_dim[current_seg_params['seg_level']]
-            if w * h > 1e8:
-                print('level_dim {} x {} is likely too large for successful segmentation, aborting'.format(w, h))
-                df.loc[idx, 'status'] = 'failed_seg'
-                continue
+        stitch_time_elapsed = -1
+        if stitch:
+            file_path = os.path.join(patch_save_dir, slide_id+'.h5')
+            heatmap, stitch_time_elapsed = stitching(file_path, downscale=64)
+            stitch_path = os.path.join(stitch_save_dir, slide_id+'.png')
+            heatmap.save(stitch_path)
 
-            if not process_list:
-                df.loc[idx, 'vis_level'] = current_vis_params['vis_level']
-                df.loc[idx, 'seg_level'] = current_seg_params['seg_level']
+        print("segmentation took {} seconds".format(seg_time_elapsed))
+        print("patching took {} seconds".format(patch_time_elapsed))
+        print("stitching took {} seconds".format(stitch_time_elapsed))
+        df.loc[idx, 'status'] = 'processed'
 
-            seg_time_elapsed = -1
-            if seg:
-                WSI_object, seg_time_elapsed = segment(WSI_object, current_seg_params, current_filter_params)
-
-            if save_mask:
-                mask = WSI_object.visWSI(**current_vis_params)
-                mask_path = os.path.join(mask_save_dir, slide_id+'.png')
-                mask.save(mask_path)
-
-            patch_time_elapsed = -1 # Default time
-            if patch:
-                current_patch_params.update({'patch_level': patch_level, 'patch_size': patch_size, 'step_size': step_size,
-                                             'save_path': patch_save_dir, 'custom_downsample': custom_downsample})
-                file_path, patch_time_elapsed = patching(WSI_object = WSI_object, **current_patch_params)
-
-            stitch_time_elapsed = -1
-            if stitch:
-                file_path = os.path.join(patch_save_dir, slide_id+'.h5')
-                heatmap, stitch_time_elapsed = stitching(file_path, downscale=64)
-                stitch_path = os.path.join(stitch_save_dir, slide_id+'.png')
-                heatmap.save(stitch_path)
-
-            print("segmentation took {} seconds".format(seg_time_elapsed))
-            print("patching took {} seconds".format(patch_time_elapsed))
-            print("stitching took {} seconds".format(stitch_time_elapsed))
-            df.loc[idx, 'status'] = 'processed'
-
-            seg_times += seg_time_elapsed
-            patch_times += patch_time_elapsed
-            stitch_times += stitch_time_elapsed
-        except Exception as e:
-            print(str(e))
+        seg_times += seg_time_elapsed
+        patch_times += patch_time_elapsed
+        stitch_times += stitch_time_elapsed
+        # except Exception as e:
+        #     print(str(e))
 
     seg_times /= total
     patch_times /= total
