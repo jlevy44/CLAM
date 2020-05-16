@@ -77,12 +77,14 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 				  use_default_params = False,
 				  seg = False, save_mask = True,
 				  stitch= False,
-				  patch = False, auto_skip=True, process_list = None):
+				  patch = False, auto_skip=True, process_list = None, single_slide=''):
 
 
 
 	slides = sorted(os.listdir(source))
 	slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
+	if single_slide:
+		slides=[single_slide]
 	if process_list is None:
 		df = initialize_df(slides, seg_params, filter_params, vis_params, patch_params)
 
@@ -233,6 +235,8 @@ parser.add_argument('--custom_downsample', type= int, choices=[1,2], default=1,
 					help='custom downscale when native downsample is not available (only tested w/ 2x downscale)')
 parser.add_argument('--process_list',  type = str, default=None,
 					help='name of list of images to process with parameters (.csv)')
+parser.add_argument('--img_name',  type = str, default=None,
+					help='if seeking preprocess a single image')
 
 if __name__ == '__main__':
 	args = parser.parse_args()
@@ -243,7 +247,6 @@ if __name__ == '__main__':
 
 	if args.process_list:
 		process_list = os.path.join(args.save_dir, args.process_list)
-
 	else:
 		process_list = None
 
@@ -294,4 +297,4 @@ if __name__ == '__main__':
 											seg = args.seg,  use_default_params=False, save_mask = True,
 											stitch= args.stitch, custom_downsample = args.custom_downsample,
 											patch_level=args.patch_level, patch = args.patch,
-											process_list = process_list, auto_skip=args.no_auto_skip)
+											process_list = process_list, auto_skip=args.no_auto_skip, single_slide=args.img_name)

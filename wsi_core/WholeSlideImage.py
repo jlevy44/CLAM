@@ -79,12 +79,49 @@ def StitchPatches(hdf5_file_path, downscale=16, draw_grid=False, bg_color=(0,0,0
     file.close()
     return heatmap
 
+import tifffile
+import cv2  # OpenCV for fast resizing
+
+def write_read_pyramid(tiff_file):
+    image = tifffile.imread(tiff_file, key=0)
+    h, w, s = image.shape
+
+    with tifffile.TiffWriter(tiff_file+'.tmp', bigtiff=True) as tif:
+        level = 0
+        while True:
+            tif.save(
+                image,
+                software='Glencoe/Faas pyramid',
+                metadata=None,
+                tile=(256, 256),
+                resolution=(1000/2**level, 1000/2**level, 'CENTIMETER'),
+                # compress=1,  # low level deflate
+                # compress=('jpeg', 95),  # requires imagecodecs
+                # subfiletype=1 if level else 0,
+            )
+            if max(w, h) < 256:
+                break
+            level += 1
+            w //= 2
+            h //= 2
+            image = cv2.resize(image, dsize=(w, h), interpolation=cv2.INTER_LINEAR)
+    return tifffile.TiffFile(tiff_file+'.tmp')
+
 class WholeSlideImage(object):
     def __init__(self, path, hdf5_file=None):
         self.name = ".".join(path.split("/")[-1].split('.')[:-1])
-        self.wsi = openslide.open_slide(path)
+        try:
+            self.wsi = openslide.open_slide(path)
+            self.load_tiff=False
+            self.level_dimensions = self.wsi.level_dimensions
+
+        except:
+            self.wsi = write_read_pyramid(path)
+            self.load_tiff=True
+            self.level_dimensions = [page.shape for page in self.wsi.pages]
+
         self.level_downsamples = self._assertLevelDownsamples()
-        self.level_dim = self.wsi.level_dimensions
+        self.level_dim = self.level_dimensions
 
         self.contours_tissue = None
         self.contours_tumor = None
@@ -150,7 +187,7 @@ class WholeSlideImage(object):
 
             return foreground_contours, hole_contours
 
-        img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level]))
+        img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level])) if not self.load_tiff else self.wsi.pages[seg_level].asarray()
         # print(img.shape)
         img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)  # Convert to HSV space
         img_med = cv2.medianBlur(img_hsv[:,:,1], mthresh)  # Apply median blurring
@@ -201,7 +238,7 @@ class WholeSlideImage(object):
 
     def visWSI(self, vis_level=0, color = (0,255,0), hole_color = (0,0,255), annot_color=(255,0,0),
                     line_thickness=12, max_size=None, crop_window=None):
-        img = np.array(self.wsi.read_region((0,0), vis_level, self.level_dim[vis_level]).convert("RGB"))
+        img = np.array(self.wsi.read_region((0,0), vis_level, self.level_dim[vis_level]).convert("RGB")) if not self.load_tiff else  self.wsi.pages[vis_level].asarray()
         downsample = self.level_downsamples[vis_level]
         scale = [1/downsample[0], 1/downsample[1]] # Scaling from 0 to desired level
         line_thickness = int(line_thickness * math.sqrt(scale[0] * scale[1]))
@@ -292,7 +329,13 @@ class WholeSlideImage(object):
         else:
             raise NotImplementedError
 
-        img_w, img_h = self.level_dim[0]
+
+        if self.load_tiff:
+            img=self.wsi.pages[0].asarray()
+            img_w, img_h = img.shape[:3]
+
+        else:
+            img_w, img_h = self.level_dim[0]
         if use_padding:
             stop_y = start_y+h
             stop_x = start_x+w
@@ -309,7 +352,7 @@ class WholeSlideImage(object):
                     continue
 
                 count+=1
-                patch_PIL = self.wsi.read_region((x,y), patch_level, (patch_size, patch_size)).convert('RGB')
+                patch_PIL = self.wsi.read_region((x,y), patch_level, (patch_size, patch_size)).convert('RGB') if not self.load_tiff else img[x:x+patch_size,y:y+patch_size]
                 if custom_downsample > 1:
                     patch_PIL = patch_PIL.resize((target_patch_size, target_patch_size))
 
@@ -384,9 +427,10 @@ class WholeSlideImage(object):
 
     def _assertLevelDownsamples(self):
         level_downsamples = []
-        dim_0 = self.wsi.level_dimensions[0]
+        dim_0 = self.level_dimensions[0]
 
-        for downsample, dim in zip(self.wsi.level_downsamples, self.wsi.level_dimensions):
+
+        for downsample, dim in zip(self.wsi.level_downsamples if not self.load_tiff else [2]*len(self.level_dimensions), self.level_dimensions):
             estimated_downsample = (dim_0[0]/float(dim[0]), dim_0[1]/float(dim[1]))
             level_downsamples.append(estimated_downsample) if estimated_downsample != (downsample, downsample) else level_downsamples.append((downsample, downsample))
 
