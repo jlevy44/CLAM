@@ -13,6 +13,7 @@ import argparse
 from utils.utils import print_network, collate_features
 from PIL import Image
 import h5py
+import pysnooper
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
@@ -84,9 +85,8 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--no_auto_skip', default=False, action='store_true')
 args = parser.parse_args()
 
-
-if __name__ == '__main__':
-
+@pysnooper.snoop()
+def main():
     print('initializing dataset')
     csv_path = args.csv_path
     if csv_path is None:
@@ -136,3 +136,8 @@ if __name__ == '__main__':
             torch.save(features, os.path.join(args.feat_dir, bag_base+'.pt'))
             # except:
             #     print("Failure {}".format(bag_name))
+
+
+
+if __name__ == '__main__':
+    main()
