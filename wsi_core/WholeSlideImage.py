@@ -353,7 +353,7 @@ class WholeSlideImage(object):
                     continue
 
                 count+=1
-                patch_PIL = self.wsi.read_region((x,y), patch_level, (patch_size, patch_size)).convert('RGB') if not self.load_tiff else img[x:x+patch_size,y:y+patch_size]
+                patch_PIL = self.wsi.read_region((x,y), patch_level, (patch_size, patch_size)).convert('RGB') if not self.load_tiff else Image.fromarray(img[x:x+patch_size,y:y+patch_size])
                 if custom_downsample > 1:
                     patch_PIL = patch_PIL.resize((target_patch_size, target_patch_size))
 
