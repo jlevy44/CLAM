@@ -111,6 +111,7 @@ def main():
     for bag_candidate_idx in range(total):
         bag_candidate = bags_dataset[bag_candidate_idx]
         bag_name = os.path.basename(os.path.normpath(bag_candidate))
+        print(bag_name,args.img_name)
         if (bag_name==args.img_name or not args.img_name) and '.h5' in bag_candidate:
             # try:
             print('\nprogress: {}/{}'.format(bag_candidate_idx, total))
