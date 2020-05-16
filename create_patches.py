@@ -84,7 +84,7 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
     slides = sorted(os.listdir(source))
     slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
     if single_slide:
-        slides=[single_slide]
+        slides=[os.path.basename(single_slide)]
     if process_list is None:
         df = initialize_df(slides, seg_params, filter_params, vis_params, patch_params)
 
