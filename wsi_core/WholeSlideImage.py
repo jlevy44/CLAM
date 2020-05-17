@@ -112,9 +112,11 @@ class WholeSlideImage(object):
     def __init__(self, path, hdf5_file=None):
         self.name = ".".join(path.split("/")[-1].split('.')[:-1])
         try:
-            self.wsi = openslide.open_slide(path)
-            self.load_tiff=False
-            self.level_dimensions = self.wsi.level_dimensions
+            self.wsi = tifffile.TiffFile(new_img_name)
+            # self.wsi = openslide.open_slide(path)
+            self.load_tiff=True
+            self.level_dimensions = [page.shape[:2] for page in self.wsi.pages]
+            # self.level_dimensions = self.wsi.level_dimensions
 
         except:
             self.wsi = write_read_pyramid(path)
