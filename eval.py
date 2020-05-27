@@ -42,7 +42,7 @@ parser.add_argument('--fold', type=int, default=-1, help='single fold to evaluat
 parser.add_argument('--micro_average', action='store_true', default=False,
                     help='use micro_average instead of macro_avearge for multiclass AUC')
 parser.add_argument('--split', type=str, choices=['train', 'val', 'test', 'all'], default='test')
-parser.add_argument('--task', type=str, choices=['camelyon_40x_cv', 'tcga_kidney_cv', 'bwh_lung_biopsy'])
+parser.add_argument('--task', type=str, choices=['camelyon_40x_cv', 'tcga_kidney_cv', 'bwh_lung_biopsy', 'test'])
 args = parser.parse_args()
 
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -93,6 +93,16 @@ elif args.task == 'tcga_kidney_cv':
                             label_dict = {'TCGA-KICH':0, 'TCGA-KIRC':1, 'TCGA-KIRP':2},
                             patient_strat= False,
                             ignore=['TCGA-SARC'])
+
+elif args.task == 'test':
+    args.n_classes=2
+    dataset = Generic_MIL_Dataset(csv_path = '../dataset_csv/test.csv',
+                            data_dir=  '../FEATURES',#os.path.join(args.data_root_dir,
+                            shuffle = False,
+                            print_info = True,
+                            label_dict = {0:0, 1:1},
+                            patient_strat=False,
+                            ignore=[])
 
 else:
     raise NotImplementedError
