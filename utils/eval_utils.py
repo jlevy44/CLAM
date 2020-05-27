@@ -14,15 +14,15 @@ from sklearn.metrics import roc_auc_score, roc_curve, auc
 import matplotlib.pyplot as plt
 
 def initiate_model(args, ckpt_path):
-    print('Init Model')    
+    print('Init Model')
     model_dict = {"dropout": args.drop_out, 'n_classes': args.n_classes}
-    
+
     if args.model_size is not None and args.model_type != 'mil':
         model_dict.update({"size_arg": args.model_size})
-    
+
     if args.model_type =='clam':
         model = CLAM(**model_dict)
-        
+
     else: # args.model_type == 'mil'
         if args.n_classes > 2:
             model = MIL_fc_mc(**model_dict)
@@ -40,13 +40,13 @@ def initiate_model(args, ckpt_path):
 
 def eval(dataset, args, ckpt_path):
     model = initiate_model(args, ckpt_path)
-    
+
     print('Init Loaders')
     loader = get_simple_loader(dataset)
-    patient_results, test_error, auc, df, _ = summary(model, loader, args)
+    patient_results, test_error, auc, df, _, all_results = summary(model, loader, args)
     print('test_error: ', test_error)
     print('auc: ', auc)
-    return model, patient_results, test_error, auc, df
+    return model, patient_results, test_error, auc, df, all_results
 
 def summary(model, loader, args):
     acc_logger = Accuracy_Logger(n_classes=args.n_classes)
@@ -60,22 +60,26 @@ def summary(model, loader, args):
 
     slide_ids = loader.dataset.slide_data['slide_id']
     patient_results = {}
+    all_results = []
     for batch_idx, (data, label) in enumerate(loader):
         data, label = data.to(device), label.to(device)
         slide_id = slide_ids.iloc[batch_idx]
         with torch.no_grad():
-            logits, Y_prob, Y_hat, _, results_dict = model(data)
-        
+            logits, Y_prob, Y_hat, A, results_dict = model(data)
+            results_dict['A']=A
+
         acc_logger.log(Y_hat, label)
-        
+
         probs = Y_prob.cpu().numpy()
 
         all_probs[batch_idx] = probs
         all_labels[batch_idx] = label.item()
         all_preds[batch_idx] = Y_hat.item()
-        
+
         patient_results.update({slide_id: {'slide_id': np.array(slide_id), 'prob': probs, 'label': label.item()}})
-        
+
+        results_dict.update({slide_id: {'slide_id': np.array(slide_id), 'prob': probs, 'label': label.item()}})
+        all_results.append(results_dict)
         error = calculate_error(Y_hat, label)
         test_error += error
 
@@ -101,4 +105,4 @@ def summary(model, loader, args):
     for c in range(args.n_classes):
         results_dict.update({'p_{}'.format(c): all_probs[:,c]})
     df = pd.DataFrame(results_dict)
-    return patient_results, test_error, auc_score, df, acc_logger
+    return patient_results, test_error, auc_score, df, acc_logger, all_results

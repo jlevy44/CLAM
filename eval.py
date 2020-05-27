@@ -13,6 +13,7 @@ from math import floor
 import matplotlib.pyplot as plt
 from datasets.dataset_generic import Generic_WSI_Classification_Dataset, Generic_MIL_Dataset, save_splits
 import h5py
+import pickle
 from utils.eval_utils import *
 
 # Training settings
@@ -28,17 +29,17 @@ parser.add_argument('--models_exp_code', type=str, default=None,
                     help='experiment code to load trained models (directory under results_dir containing model checkpoints')
 parser.add_argument('--splits_dir', type=str, default=None,
                     help='splits directory, if using custom splits other than what matches the task (default: None)')
-parser.add_argument('--model_size', type=str, choices=['small', 'big'], default='small', 
+parser.add_argument('--model_size', type=str, choices=['small', 'big'], default='small',
                     help='size of model (default: small)')
-parser.add_argument('--model_type', type=str, choices=['clam', 'mil'], default='clam', 
+parser.add_argument('--model_type', type=str, choices=['clam', 'mil'], default='clam',
                     help='type of model (default: clam)')
-parser.add_argument('--drop_out', action='store_true', default=False, 
+parser.add_argument('--drop_out', action='store_true', default=False,
                     help='whether model uses dropout')
 parser.add_argument('--k', type=int, default=10, help='number of folds (default: 10)')
 parser.add_argument('--k_start', type=int, default=-1, help='start fold (default: -1, last fold)')
 parser.add_argument('--k_end', type=int, default=-1, help='end fold (default: -1, first fold)')
 parser.add_argument('--fold', type=int, default=-1, help='single fold to evaluate')
-parser.add_argument('--micro_average', action='store_true', default=False, 
+parser.add_argument('--micro_average', action='store_true', default=False,
                     help='use micro_average instead of macro_avearge for multiclass AUC')
 parser.add_argument('--split', type=str, choices=['train', 'val', 'test', 'all'], default='test')
 parser.add_argument('--task', type=str, choices=['camelyon_40x_cv', 'tcga_kidney_cv', 'bwh_lung_biopsy'])
@@ -62,7 +63,7 @@ assert os.path.isdir(args.splits_dir)
 
 settings = {'task': args.task,
             'split': args.split,
-            'save_dir': args.save_dir, 
+            'save_dir': args.save_dir,
             'models_dir': args.models_dir,
             'model_type': args.model_type,
             'drop_out': args.drop_out,
@@ -77,7 +78,7 @@ if args.task == 'camelyon_40x_cv':
     args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/camelyon_clean.csv',
                             data_dir= os.path.join(args.data_root_dir, 'camelyon_40x_resnet_features'),
-                            shuffle = False, 
+                            shuffle = False,
                             print_info = True,
                             label_dict = {'normal_tissue':0, 'tumor_tissue':1},
                             patient_strat=False,
@@ -87,7 +88,7 @@ elif args.task == 'tcga_kidney_cv':
     args.n_classes=3
     dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tcga_kidney_clean.csv',
                             data_dir= os.path.join(args.data_root_dir, 'tcga_kidney_resnet_features'),
-                            shuffle = False, 
+                            shuffle = False,
                             print_info = True,
                             label_dict = {'TCGA-KICH':0, 'TCGA-KIRC':1, 'TCGA-KIRP':2},
                             patient_strat= False,
@@ -123,11 +124,13 @@ if __name__ == "__main__":
             csv_path = '{}/splits_{}.csv'.format(args.splits_dir, folds[ckpt_idx])
             datasets = dataset.return_splits(from_id=False, csv_path=csv_path)
             split_dataset = datasets[datasets_id[args.split]]
-        model, patient_results, test_error, auc, df  = eval(split_dataset, args, ckpt_paths[ckpt_idx])
+        model, patient_results, test_error, auc, df, all_results  = eval(split_dataset, args, ckpt_paths[ckpt_idx])
         all_results.append(all_results)
         all_auc.append(auc)
         all_acc.append(1-test_error)
         df.to_csv(os.path.join(args.save_dir, 'fold_{}.csv'.format(folds[ckpt_idx])), index=False)
+        pickle.dump(all_results,open(os.path.join(args.save_dir, 'fold_{}_res.p'.format(folds[ckpt_idx])),'wb'))
+
 
     final_df = pd.DataFrame({'folds': folds, 'test_auc': all_auc, 'test_acc': all_acc})
     if len(folds) != args.k:
