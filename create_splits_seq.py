@@ -41,9 +41,10 @@ elif args.task == 'test':
                             patient_strat= True,
                             ignore=[])
 
-    pdb.set_trace()
+
     val_num = (20, 15)
     test_num = (20, 15)
+    pdb.set_trace()
 
 elif args.task == 'camelyon_40x_cv':
     args.n_classes=2
