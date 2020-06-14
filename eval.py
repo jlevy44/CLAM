@@ -96,7 +96,7 @@ elif args.task == 'tcga_kidney_cv':
 
 elif args.task == 'test':
     args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = '../dataset_csv/test.csv',
+    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/test.csv',
                             data_dir=  '../FEATURES',#os.path.join(args.data_root_dir,
                             shuffle = False,
                             print_info = True,

@@ -33,7 +33,7 @@ if args.task == 'tcga_kidney':
 
 elif args.task == 'test':
     args.n_classes=2
-    dataset = Generic_WSI_Classification_Dataset(csv_path = '../dataset_csv/test.csv',
+    dataset = Generic_WSI_Classification_Dataset(csv_path = 'dataset_csv/test.csv',
                             shuffle = False,
                             seed = args.seed,
                             print_info = True,
@@ -42,8 +42,8 @@ elif args.task == 'test':
                             ignore=[])
 
     pdb.set_trace()
-    val_num = (10, 4)
-    test_num = (10, 4)
+    val_num = (20, 15)
+    test_num = (20, 15)
 
 elif args.task == 'camelyon_40x_cv':
     args.n_classes=2
